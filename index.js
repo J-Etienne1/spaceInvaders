@@ -157,6 +157,7 @@ addEventListener("keydown", ({ key }) => {
   }
 });
 
+
 addEventListener("keyup", ({ key }) => {
   // check what keys we need
   //console.log(key)
