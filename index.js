@@ -12,6 +12,8 @@ class Player {
       y: 0,
     };
 
+    this.rotation = 0;
+
     const image = new Image();
     image.src = "./images/ship.png";
     image.onload = () => {
@@ -31,13 +33,27 @@ class Player {
     // c.fillStyle = 'red'
     // c.fillRect(this.position.x, this.position.y, this.width, this.height)
     //if (this.position)
-      c.drawImage(
-        this.image,
-        this.position.x,
-        this.position.y,
-        this.width,
-        this.height
+
+    c.save();
+    c.translate(
+      player.position.x + player.width / 2,
+      player.position.y + player.height / 2
+    );
+
+    c.rotate(this.rotation)
+    c.translate(
+        -player.position.x - player.width / 2,
+        -player.position.y - player.height / 2
       );
+
+    c.drawImage(
+      this.image,
+      this.position.x,
+      this.position.y,
+      this.width,
+      this.height
+    );
+    c.restore();
   }
   update() {
     if (this.image) {
@@ -50,16 +66,16 @@ class Player {
 const player = new Player();
 //player.draw();
 const keys = {
-    ArrowLeft:{
-        pressed: false
-    },
-    ArrowRight:{
-        pressed: false
-    },
-    space:{
-        pressed: false
-    }
-}
+  ArrowLeft: {
+    pressed: false,
+  },
+  ArrowRight: {
+    pressed: false,
+  },
+  space: {
+    pressed: false,
+  },
+};
 
 // image need to load to need animate to keep calling our images
 function animate() {
@@ -68,13 +84,18 @@ function animate() {
   c.fillRect(0, 0, canvas.width, canvas.height);
   player.update();
 
-  if (keys.ArrowLeft.pressed && player.position.x >= 0){
+  if (keys.ArrowLeft.pressed && player.position.x >= 0) {
     player.velocity.x = -5;
-    player.rotation = .15;
-  } else if (keys.ArrowRight.pressed  && player.position.x + player.width <=  canvas.width) {
+    player.rotation = -0.15;
+  } else if (
+    keys.ArrowRight.pressed &&
+    player.position.x + player.width <= canvas.width
+  ) {
     player.velocity.x = 5;
-  }  else {
+    player.rotation = 0.15;
+  } else {
     player.velocity.x = 0;
+    player.rotation = 0;
   }
 }
 
@@ -86,38 +107,36 @@ addEventListener("keydown", ({ key }) => {
   switch (key) {
     case "ArrowLeft":
       //console.log("left");
-      
-      keys.ArrowLeft.pressed = true
+
+      keys.ArrowLeft.pressed = true;
       break;
     case "ArrowRight":
       //console.log("right");
-      keys.ArrowRight.pressed = true
+      keys.ArrowRight.pressed = true;
       break;
     case " ":
       //console.log("space");
-      keys.space.pressed = true
+      keys.space.pressed = true;
       break;
   }
 });
 
-
-
 addEventListener("keyup", ({ key }) => {
-    // check what keys we need
-    //console.log(key)
-    switch (key) {
-      case "ArrowLeft":
-        //console.log("left");
-        
-        keys.ArrowLeft.pressed = false
-        break;
-      case "ArrowRight":
-        //console.log("right");
-        keys.ArrowRight.pressed = false
-        break;
-      case " ":
-        //console.log("space");
-        keys.space.pressed = false
-        break;
-    }
-  });
+  // check what keys we need
+  //console.log(key)
+  switch (key) {
+    case "ArrowLeft":
+      //console.log("left");
+
+      keys.ArrowLeft.pressed = false;
+      break;
+    case "ArrowRight":
+      //console.log("right");
+      keys.ArrowRight.pressed = false;
+      break;
+    case " ":
+      //console.log("space");
+      keys.space.pressed = false;
+      break;
+  }
+});
