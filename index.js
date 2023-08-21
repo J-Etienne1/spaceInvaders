@@ -457,7 +457,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // spawning invaders
     if (frames % randomInterval === 0) {
       grids.push(new Grid());
-      randomInterval = Math.floor(Math.random() * 500) + 500;
+      randomInterval = Math.floor(Math.random() * 10000) + 500;
       frames = 0;
 
       //console.log(randomInterval)
