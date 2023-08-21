@@ -1,5 +1,3 @@
-
-
 document.addEventListener("DOMContentLoaded", function () {
   const scoreEL = document.querySelector("#scoreEL");
   const canvas = document.querySelector("canvas");
@@ -265,8 +263,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   let score = 0;
 
-
-
   for (let i = 0; i < 100; i++) {
     particles.push(
       new Particle({
@@ -408,9 +404,9 @@ document.addEventListener("DOMContentLoaded", function () {
               );
 
               if (invaderFound && projectileFound) {
-                score += 100
+                score += 100;
                 //console.log(score)
-                scoreEL.innerHTML = score
+                scoreEL.innerHTML = score;
                 createParticles({
                   object: invader,
                   fades: true,
