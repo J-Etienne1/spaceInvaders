@@ -1,6 +1,11 @@
+
+
 document.addEventListener("DOMContentLoaded", function () {
+  const scoreEL = document.querySelector("#scoreEL");
   const canvas = document.querySelector("canvas");
   const c = canvas.getContext("2d");
+
+  //console.log(scoreEL)
 
   canvas.width = innerWidth;
   canvas.height = innerHeight;
@@ -14,6 +19,7 @@ document.addEventListener("DOMContentLoaded", function () {
       };
 
       this.rotation = 0;
+      this.opacity = 1;
 
       const image = new Image();
       image.src = "./images/ship.png";
@@ -36,6 +42,7 @@ document.addEventListener("DOMContentLoaded", function () {
       //if (this.position)
 
       c.save();
+      c.globalAlpha = this.opacity;
       c.translate(
         player.position.x + player.width / 2,
         player.position.y + player.height / 2
@@ -101,17 +108,19 @@ document.addEventListener("DOMContentLoaded", function () {
         this.position.y += velocity.y;
       }
     }
-    shoot(InvaderProjectiles){
-      InvaderProjectiles.push(new InvaderProjectile({
-        position:{
-          x: this.position.x + this.width / 2,
-          y: this.position.y + this.height
-        },
-        velocity:{
-          x:0,
-          y:5
-        }
-      }))
+    shoot(InvaderProjectiles) {
+      InvaderProjectiles.push(
+        new InvaderProjectile({
+          position: {
+            x: this.position.x + this.width / 2,
+            y: this.position.y + this.height,
+          },
+          velocity: {
+            x: 0,
+            y: 5,
+          },
+        })
+      );
     }
   }
 
@@ -180,17 +189,44 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  class Particle {
+    constructor({ position, velocity, radius, color, fades }) {
+      (this.position = position),
+        (this.velocity = velocity),
+        (this.radius = radius),
+        (this.color = color),
+        (this.opacity = 1),
+        (this.fades = fades);
+    }
+    draw() {
+      c.save();
+      c.globalAlpha = this.opacity;
+      c.beginPath();
+      c.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
+      c.fillStyle = this.color;
+      c.fill();
+      c.closePath();
+      c.restore();
+    }
 
+    update() {
+      this.draw();
+      this.position.x += this.velocity.x;
+      this.position.y += this.velocity.y;
+      if (this.fades) this.opacity -= 0.01;
+    }
+  }
 
   class InvaderProjectile {
     constructor({ position, velocity }) {
-      (this.position = position), (this.velocity = velocity), (this.width = 4), (this.height = 10);
-
-
+      (this.position = position),
+        (this.velocity = velocity),
+        (this.width = 4),
+        (this.height = 10);
     }
     draw() {
-      c.fillStyle = 'white'
-     c.fillRect(this.position.x, this.position.y, this.width, this.height)
+      c.fillStyle = "white";
+      c.fillRect(this.position.x, this.position.y, this.width, this.height);
     }
 
     update() {
@@ -200,14 +236,12 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-
-
-
   // Render Player /Invder /Projectile
   const player = new Player();
   const projectiles = [];
   const grids = [];
   const InvaderProjectiles = [];
+  const particles = [];
   //player.draw();
   const keys = {
     ArrowLeft: {
@@ -221,34 +255,118 @@ document.addEventListener("DOMContentLoaded", function () {
     },
   };
 
-
   let frames = 0;
   let randomInterval = Math.floor(Math.random() * 500) + 500;
   // console.log(randomInterval)
+  let game = {
+    over: false,
+    active: true,
+  };
+
+  let score = 0;
+
+
+
+  for (let i = 0; i < 100; i++) {
+    particles.push(
+      new Particle({
+        position: {
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+        },
+        velocity: {
+          x: 0,
+          y: 0.5,
+        },
+        radius: Math.random() * 3,
+        color: "white",
+      })
+    );
+  }
+
+  function createParticles({ object, color, fades }) {
+    for (let i = 0; i < 15; i++) {
+      particles.push(
+        new Particle({
+          position: {
+            x: object.position.x + object.width / 2,
+            y: object.position.y + object.height / 2,
+          },
+          velocity: {
+            x: (Math.random() - 0.5) * 2,
+            y: (Math.random() - 0.5) * 2,
+          },
+          radius: Math.random() * 3,
+          color: color || "#BAA0DE",
+          fades,
+        })
+      );
+    }
+  }
 
   // image need to load, need animate to keep calling our images
   function animate() {
+    if (!game.active) return;
+
     requestAnimationFrame(animate);
     c.fillStyle = "black";
     c.fillRect(0, 0, canvas.width, canvas.height);
     player.update();
-    InvaderProjectiles.forEach((InvaderProjectile, index) =>{
-      if (InvaderProjectile.position.y + InvaderProjectile.height >= canvas.height){
+    particles.forEach((particle, i) => {
+      if (particle.position.y - particle.radius >= canvas.height) {
+        particle.position.x = Math.random() * canvas.width;
+        particle.position.y = -particle.radius;
+      }
+
+      if (particle.opacity <= 0) {
+        setTimeout(() => {
+          particles.splice(i, 1);
+        }, 0);
+      } else {
+        particle.update();
+      }
+    });
+
+    // console.log(particles);
+
+    InvaderProjectiles.forEach((InvaderProjectile, index) => {
+      if (
+        InvaderProjectile.position.y + InvaderProjectile.height >=
+        canvas.height
+      ) {
         setTimeout(() => {
           InvaderProjectiles.splice(index, 1);
         }, 0);
       }
-      InvaderProjectile.update()
+      InvaderProjectile.update();
 
-      if (InvaderProjectile.position.y + InvaderProjectile.height >= player.position.y && InvaderProjectile.position.x + InvaderProjectile.width >= player.position.x && InvaderProjectile.position.x <= player.position.x + player.width){
-        console.log("YOusdfuhosfdg")
+      if (
+        InvaderProjectile.position.y + InvaderProjectile.height >=
+          player.position.y &&
+        InvaderProjectile.position.x + InvaderProjectile.width >=
+          player.position.x &&
+        InvaderProjectile.position.x <= player.position.x + player.width
+      ) {
+        // console.log("You Loose!!");
+        setTimeout(() => {
+          InvaderProjectiles.splice(index, 1);
+          player.opacity = 0;
+          game.over = true;
+        }, 0);
+
+        setTimeout(() => {
+          game.active = false;
+        }, 2000);
+
+        createParticles({
+          object: player,
+          color: "white",
+          fades: true,
+        });
       }
-
-    })
-
+    });
 
     // console.log(InvaderProjectiles)
-
 
     projectiles.forEach((projectile, index) => {
       if (projectile.position.y + projectile.radius <= 0) {
@@ -260,12 +378,14 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
 
-    grids.forEach((grid,gridIndex ) => {
+    grids.forEach((grid, gridIndex) => {
       grid.update();
       // spawn projectiles
-    if (frames % 100 === 0 && grid.invaders.length >0){
-      grid.invaders[Math.floor(Math.random() * grid.invaders.length)].shoot(InvaderProjectiles)
-    }
+      if (frames % 100 === 0 && grid.invaders.length > 0) {
+        grid.invaders[Math.floor(Math.random() * grid.invaders.length)].shoot(
+          InvaderProjectiles
+        );
+      }
       grid.invaders.forEach((invader, i) => {
         invader.update({ velocity: grid.velocity });
 
@@ -284,10 +404,18 @@ document.addEventListener("DOMContentLoaded", function () {
               );
 
               const projectileFound = projectiles.find(
-                (projectile2) => projectile2 === projectile 
+                (projectile2) => projectile2 === projectile
               );
 
               if (invaderFound && projectileFound) {
+                score += 100
+                //console.log(score)
+                scoreEL.innerHTML = score
+                createParticles({
+                  object: invader,
+                  fades: true,
+                });
+
                 grid.invaders.splice(i, 1);
                 projectiles.splice(j, 1);
 
@@ -299,9 +427,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     lastInvader.posotion.x -
                     firstInvader.position.x +
                     lastInvader.width;
-                    grid.position.x = firstInvader.position.x
+                  grid.position.x = firstInvader.position.x;
                 } else {
-                  grids.splice(gridIndex, 1)
+                  grids.splice(gridIndex, 1);
                 }
               }
             }, 0);
@@ -331,11 +459,9 @@ document.addEventListener("DOMContentLoaded", function () {
       grids.push(new Grid());
       randomInterval = Math.floor(Math.random() * 500) + 500;
       frames = 0;
+
       //console.log(randomInterval)
     }
-
-
-    
 
     frames++;
   }
@@ -343,6 +469,7 @@ document.addEventListener("DOMContentLoaded", function () {
   animate();
 
   addEventListener("keydown", ({ key }) => {
+    if (game.over) return;
     // check what keys we need
     //console.log(key)
     switch (key) {
