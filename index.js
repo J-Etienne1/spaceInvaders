@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", function () {
   //console.log(scoreEL)
 
   canvas.width = innerWidth;
-  canvas.height = innerHeight;
+  canvas.height = 1300;
 
   // Create a Player
   class Player {
